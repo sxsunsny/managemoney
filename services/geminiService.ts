@@ -3,13 +3,7 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, Budget } from "../types";
 
 export const getFinancialInsights = async (transactions: Transaction[], budgets: Budget[]): Promise<any> => {
-  const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : '';
-  
-  if (!apiKey) {
-    return { insights: [{ title: 'ระบบ AI ไม่พร้อมใช้งาน', recommendation: 'กรุณาตรวจสอบการตั้งค่า API Key', priority: 'low' }] };
-  }
-
-  const ai = new GoogleGenAI({ apiKey: apiKey as string });
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
   
   const prompt = `
     คุณเป็นที่ปรึกษาทางการเงินสำหรับนักเรียนนักศึกษา
@@ -52,7 +46,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
       }
     });
 
-    return JSON.parse(response.text || '{"insights": []}');
+    return JSON.parse(response.text);
   } catch (error) {
     console.error("Gemini Insight Error:", error);
     return { insights: [] };
