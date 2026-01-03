@@ -1,5 +1,7 @@
 
 export type TransactionType = 'income' | 'expense';
+export type Language = 'th' | 'en';
+export type Theme = 'dark' | 'light';
 
 export interface Transaction {
   id: string;

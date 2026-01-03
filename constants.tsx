@@ -1,30 +1,128 @@
 
-import React from 'react';
-
 export const CATEGORIES = {
-  expense: [
-    'ค่าอาหารและเครื่องดื่ม', 
-    'อุปกรณ์การเรียน/หนังสือ', 
-    'ค่าเดินทาง', 
-    'ค่าหอพัก/ที่พัก', 
-    'ค่าเทอม/กิจกรรมคณะ', 
-    'สังสรรค์/ความบันเทิง', 
-    'ช้อปปิ้ง/เสื้อผ้า', 
-    'ของใช้ส่วนตัว', 
-    'เกม/สตรีมมิ่ง', 
-    'อื่นๆ'
-  ],
-  income: [
-    'ค่าขนมจากที่บ้าน', 
-    'งานพาร์ทไทม์', 
-    'ทุนการศึกษา', 
-    'รางวัล/ของขวัญ', 
-    'เงินคืน/Cashback', 
-    'อื่นๆ'
-  ]
+  th: {
+    expense: [
+      'ค่าอาหารและเครื่องดื่ม', 
+      'อุปกรณ์การเรียน/หนังสือ', 
+      'ค่าเดินทาง', 
+      'ค่าหอพัก/ที่พัก', 
+      'ค่าเทอม/กิจกรรมคณะ', 
+      'สังสรรค์/ความบันเทิง', 
+      'ช้อปปิ้ง/เสื้อผ้า', 
+      'ของใช้ส่วนตัว', 
+      'เกม/สตรีมมิ่ง', 
+      'อื่นๆ'
+    ],
+    income: [
+      'ค่าขนมจากที่บ้าน', 
+      'งานพาร์ทไทม์', 
+      'ทุนการศึกษา', 
+      'รางวัล/ของขวัญ', 
+      'เงินคืน/Cashback', 
+      'อื่นๆ'
+    ]
+  },
+  en: {
+    expense: [
+      'Food & Drinks', 
+      'Study/Books', 
+      'Transport', 
+      'Housing/Rent', 
+      'Tuition/Fees', 
+      'Social/Entertainment', 
+      'Shopping', 
+      'Personal Care', 
+      'Gaming/Streaming', 
+      'Others'
+    ],
+    income: [
+      'Allowance', 
+      'Part-time Job', 
+      'Scholarship', 
+      'Gifts/Prizes', 
+      'Cashback/Refund', 
+      'Others'
+    ]
+  }
+};
+
+export const TRANSLATIONS = {
+  th: {
+    dashboard: 'สรุปภาพรวม',
+    history: 'รายการย้อนหลัง',
+    budgets: 'งบประมาณ',
+    aiAdvice: 'AI แนะนำ',
+    balance: 'เงินคงเหลือ',
+    income: 'รายรับ',
+    expenses: 'รายจ่าย',
+    savings: 'เงินออม',
+    savingsRate: 'อัตราการออม',
+    greet: 'สวัสดีจ้า',
+    subGreet: 'วันนี้วางแผนการเงินหรือยัง?',
+    recent: 'รายการล่าสุด',
+    proportion: 'สัดส่วนรายจ่าย',
+    noRec: 'ยังไม่มีบันทึกวันนี้',
+    addBtn: '+ จดรายการ',
+    empty: 'ความว่างเปล่า... เริ่มจดกันเลย!',
+    setBudget: 'ตั้งงบรายเดือน',
+    used: 'ใช้ไป',
+    overBudget: 'ใช้เกินงบแล้ว!',
+    aiConsult: 'AI ที่ปรึกษา',
+    analyzeBtn: 'วิเคราะห์พฤติกรรม',
+    analyzing: 'กำลังคำนวณ...',
+    aiDesc: 'วิเคราะห์พฤติกรรมการเงิน',
+    noAi: 'คลิกปุ่มด้านล่างเพื่อรับคำแนะนำ',
+    record: 'จดบันทึก',
+    amt: 'จำนวนเงิน (บาท)',
+    cat: 'หมวดหมู่',
+    date: 'วันที่',
+    note: 'บันทึกเพิ่มเติม',
+    save: 'บันทึก',
+    pay: 'จ่ายเงิน',
+    receive: 'ได้รับเงิน',
+    urgent: 'แนะนำด่วน',
+    tip: 'เกร็ดความรู้'
+  },
+  en: {
+    dashboard: 'Dashboard',
+    history: 'History',
+    budgets: 'Budgets',
+    aiAdvice: 'AI Insights',
+    balance: 'Balance',
+    income: 'Income',
+    expenses: 'Expenses',
+    savings: 'Savings',
+    savingsRate: 'Savings Rate',
+    greet: 'Hello there!',
+    subGreet: 'Ready to plan your day?',
+    recent: 'Recent Activities',
+    proportion: 'Expense Mix',
+    noRec: 'No records today',
+    addBtn: '+ New Entry',
+    empty: 'Empty... start recording!',
+    setBudget: 'Monthly Budgets',
+    used: 'Used',
+    overBudget: 'Over Budget!',
+    aiConsult: 'AI Consultant',
+    analyzeBtn: 'Analyze Behavior',
+    analyzing: 'AI is thinking...',
+    aiDesc: 'Analyze your financial habits',
+    noAi: 'Click below to get advice',
+    record: 'New Record',
+    amt: 'Amount (THB)',
+    cat: 'Category',
+    date: 'Date',
+    note: 'Additional Note',
+    save: 'Save',
+    pay: 'Expense',
+    receive: 'Income',
+    urgent: 'Urgent Action',
+    tip: 'Financial Tip'
+  }
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
+  // Thai
   'ค่าอาหารและเครื่องดื่ม': '#f59e0b',
   'อุปกรณ์การเรียน/หนังสือ': '#3b82f6',
   'ค่าเดินทาง': '#10b981',
@@ -39,5 +137,21 @@ export const CATEGORY_COLORS: Record<string, string> = {
   'งานพาร์ทไทม์': '#8b5cf6',
   'ทุนการศึกษา': '#f59e0b',
   'รางวัล/ของขวัญ': '#ec4899',
-  'เงินคืน/Cashback': '#06b6d4'
+  'เงินคืน/Cashback': '#06b6d4',
+  // English
+  'Food & Drinks': '#f59e0b',
+  'Study/Books': '#3b82f6',
+  'Transport': '#10b981',
+  'Housing/Rent': '#6366f1',
+  'Tuition/Fees': '#ec4899',
+  'Social/Entertainment': '#8b5cf6',
+  'Shopping': '#f43f5e',
+  'Personal Care': '#14b8a6',
+  'Gaming/Streaming': '#0ea5e9',
+  'Allowance': '#10b981',
+  'Part-time Job': '#8b5cf6',
+  'Scholarship': '#f59e0b',
+  'Gifts/Prizes': '#ec4899',
+  'Cashback/Refund': '#06b6d4',
+  'Others': '#94a3b8'
 };
