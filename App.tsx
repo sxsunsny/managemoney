@@ -7,7 +7,7 @@ import {
 import { 
   Plus, TrendingUp, TrendingDown, Wallet, 
   PieChart as PieIcon, List, BrainCircuit,
-  X, Trash2, Calendar
+  X, Trash2, Calendar, Download
 } from 'lucide-react';
 import { Transaction, Budget, TransactionType, AIInsight } from './types';
 import { CATEGORIES, CATEGORY_COLORS } from './constants';
@@ -130,6 +130,86 @@ const App: React.FC = () => {
     } finally {
       setIsAiLoading(false);
     }
+  };
+
+  const handleExportHTML = () => {
+    const rows = transactions.map(t => `
+      <tr style="border-bottom: 1px solid #e2e8f0;">
+        <td style="padding: 12px; font-size: 14px;">${new Date(t.date).toLocaleDateString()}</td>
+        <td style="padding: 12px; font-size: 14px;">${t.description}</td>
+        <td style="padding: 12px; font-size: 14px;">${t.category}</td>
+        <td style="padding: 12px; font-size: 14px; font-weight: bold; color: ${t.type === 'income' ? '#059669' : '#e11d48'};">
+          ${t.type === 'income' ? '+' : '-'}$${t.amount.toLocaleString()}
+        </td>
+      </tr>
+    `).join('');
+
+    const htmlContent = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <title>WealthWisely Report - ${new Date().toLocaleDateString()}</title>
+        <style>
+          body { font-family: sans-serif; padding: 40px; color: #1e293b; background: #f8fafc; }
+          .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 20px; box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1); }
+          h1 { color: #4f46e5; margin-bottom: 5px; }
+          .summary { display: grid; grid-template-cols: 1fr 1fr 1fr; gap: 20px; margin: 30px 0; }
+          .card { padding: 15px; border-radius: 12px; background: #f1f5f9; text-align: center; }
+          table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+          th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 12px; text-transform: uppercase; color: #64748b; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <h1>WealthWisely Report</h1>
+          <p style="color: #64748b;">Generated on ${new Date().toLocaleString()}</p>
+          
+          <div class="summary">
+            <div class="card">
+              <div style="font-size: 12px; color: #64748b;">TOTAL INCOME</div>
+              <div style="font-size: 20px; font-weight: bold; color: #059669;">$${summary.income.toLocaleString()}</div>
+            </div>
+            <div class="card">
+              <div style="font-size: 12px; color: #64748b;">TOTAL EXPENSES</div>
+              <div style="font-size: 20px; font-weight: bold; color: #e11d48;">$${summary.expenses.toLocaleString()}</div>
+            </div>
+            <div class="card">
+              <div style="font-size: 12px; color: #64748b;">NET BALANCE</div>
+              <div style="font-size: 20px; font-weight: bold; color: #4f46e5;">$${summary.balance.toLocaleString()}</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+          
+          <p style="margin-top: 40px; text-align: center; font-size: 12px; color: #94a3b8;">
+            Thank you for using WealthWisely for your financial journey.
+          </p>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob([htmlContent], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `wealthwisely_report_${new Date().toISOString().split('T')[0]}.html`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -261,12 +341,21 @@ const App: React.FC = () => {
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex justify-between items-center">
               <h2 className="text-2xl font-bold">All Transactions</h2>
-              <button 
-                onClick={() => setIsModalOpen(true)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 flex items-center gap-2"
-              >
-                <Plus size={20} /> Add New
-              </button>
+              <div className="flex gap-3">
+                <button 
+                  onClick={handleExportHTML}
+                  disabled={transactions.length === 0}
+                  className="bg-slate-100 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-200 flex items-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={20} /> Export HTML
+                </button>
+                <button 
+                  onClick={() => setIsModalOpen(true)}
+                  className="bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-indigo-700 flex items-center gap-2"
+                >
+                  <Plus size={20} /> Add New
+                </button>
+              </div>
             </div>
             <Card title="Transaction History">
               <div className="divide-y divide-slate-100">
