@@ -12,7 +12,7 @@ export interface Transaction {
 
 export interface Budget {
   category: string;
-  limit: number;
+  amount_limit: number;
 }
 
 export interface MonthlySummary {

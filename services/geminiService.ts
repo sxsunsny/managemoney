@@ -3,7 +3,24 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, Budget } from "../types";
 
 export const getFinancialInsights = async (transactions: Transaction[], budgets: Budget[]): Promise<any> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+  let apiKey = '';
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
+      apiKey = process.env.API_KEY;
+    }
+  } catch (e) {}
+
+  if (!apiKey) {
+    return { 
+      insights: [{ 
+        title: 'AI ยังไม่พร้อมใช้งาน', 
+        recommendation: 'กรุณาตั้งค่า API_KEY ใน Environment Variables เพื่อใช้งานฟีเจอร์นี้', 
+        priority: 'low' 
+      }] 
+    };
+  }
+
+  const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `
     คุณเป็นที่ปรึกษาทางการเงินสำหรับนักเรียนนักศึกษา
@@ -11,12 +28,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
     รายการธุรกรรม: ${JSON.stringify(transactions)}
     งบประมาณที่ตั้งไว้: ${JSON.stringify(budgets)}
     
-    โปรดให้ข้อมูลเชิงลึก 3 ข้อที่เป็นประโยชน์ต่อวัยเรียน โดยเน้น:
-    1. การบริหารค่าขนมให้พอใช้ถึงสิ้นเดือน
-    2. เทคนิคการประหยัดค่าอุปกรณ์การเรียนหรือค่ากิน
-    3. แนวทางการออมเงินก้อนแรกหรือการลงทุนเล็กๆ น้อยๆ สำหรับนักศึกษา
-    
-    คำตอบต้องเป็นภาษาไทยที่เข้าใจง่าย เป็นกันเอง และให้กำลังใจ
+    โปรดให้ข้อมูลเชิงลึก 3 ข้อที่เป็นประโยชน์ต่อวัยเรียน โดยตอบเป็น JSON เท่านั้น
   `;
 
   try {
@@ -46,7 +58,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
       }
     });
 
-    return JSON.parse(response.text);
+    return JSON.parse(response.text || '{"insights": []}');
   } catch (error) {
     console.error("Gemini Insight Error:", error);
     return { insights: [] };
