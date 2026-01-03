@@ -3,26 +3,41 @@ import React from 'react';
 
 export const CATEGORIES = {
   expense: [
-    'Housing', 'Food', 'Transportation', 'Entertainment', 'Shopping', 
-    'Health', 'Education', 'Investment', 'Utilities', 'Other'
+    'ค่าอาหารและเครื่องดื่ม', 
+    'อุปกรณ์การเรียน/หนังสือ', 
+    'ค่าเดินทาง', 
+    'ค่าหอพัก/ที่พัก', 
+    'ค่าเทอม/กิจกรรมคณะ', 
+    'สังสรรค์/ความบันเทิง', 
+    'ช้อปปิ้ง/เสื้อผ้า', 
+    'ของใช้ส่วนตัว', 
+    'เกม/สตรีมมิ่ง', 
+    'อื่นๆ'
   ],
   income: [
-    'Salary', 'Freelance', 'Gifts', 'Investments', 'Other'
+    'ค่าขนมจากที่บ้าน', 
+    'งานพาร์ทไทม์', 
+    'ทุนการศึกษา', 
+    'รางวัล/ของขวัญ', 
+    'เงินคืน/Cashback', 
+    'อื่นๆ'
   ]
 };
 
 export const CATEGORY_COLORS: Record<string, string> = {
-  Housing: '#3b82f6',
-  Food: '#f59e0b',
-  Transportation: '#10b981',
-  Entertainment: '#8b5cf6',
-  Shopping: '#ec4899',
-  Health: '#ef4444',
-  Education: '#06b6d4',
-  Investment: '#22c55e',
-  Utilities: '#64748b',
-  Other: '#94a3b8',
-  Salary: '#22c55e',
-  Freelance: '#8b5cf6',
-  Gifts: '#f59e0b'
+  'ค่าอาหารและเครื่องดื่ม': '#f59e0b',
+  'อุปกรณ์การเรียน/หนังสือ': '#3b82f6',
+  'ค่าเดินทาง': '#10b981',
+  'ค่าหอพัก/ที่พัก': '#6366f1',
+  'ค่าเทอม/กิจกรรมคณะ': '#ec4899',
+  'สังสรรค์/ความบันเทิง': '#8b5cf6',
+  'ช้อปปิ้ง/เสื้อผ้า': '#f43f5e',
+  'ของใช้ส่วนตัว': '#14b8a6',
+  'เกม/สตรีมมิ่ง': '#0ea5e9',
+  'อื่นๆ': '#94a3b8',
+  'ค่าขนมจากที่บ้าน': '#10b981',
+  'งานพาร์ทไทม์': '#8b5cf6',
+  'ทุนการศึกษา': '#f59e0b',
+  'รางวัล/ของขวัญ': '#ec4899',
+  'เงินคืน/Cashback': '#06b6d4'
 };
