@@ -15,9 +15,16 @@ import { CATEGORIES, CATEGORY_COLORS, TRANSLATIONS } from './constants';
 import { getFinancialInsights } from './services/geminiService';
 
 const App: React.FC = () => {
-  // Config State
-  const [lang, setLang] = useState<Language>(() => (localStorage.getItem('ww_lang') as Language) || 'th');
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem('ww_theme') as Theme) || 'dark');
+  // Safety check for Language & Theme from LocalStorage
+  const [lang, setLang] = useState<Language>(() => {
+    const saved = localStorage.getItem('ww_lang');
+    return (saved === 'th' || saved === 'en') ? saved as Language : 'th';
+  });
+  
+  const [theme, setTheme] = useState<Theme>(() => {
+    const saved = localStorage.getItem('ww_theme');
+    return (saved === 'dark' || saved === 'light') ? saved as Theme : 'dark';
+  });
   
   // Data State
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -37,7 +44,7 @@ const App: React.FC = () => {
   const [formDesc, setFormDesc] = useState('');
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
 
-  const t = TRANSLATIONS[lang];
+  const t = TRANSLATIONS[lang] || TRANSLATIONS['th'];
 
   // Persist Settings
   useEffect(() => { localStorage.setItem('ww_lang', lang); }, [lang]);
@@ -45,23 +52,31 @@ const App: React.FC = () => {
 
   // Update form category when language changes
   useEffect(() => {
-    setFormCategory(CATEGORIES[lang][formType][0]);
+    if (CATEGORIES[lang] && CATEGORIES[lang][formType]) {
+      setFormCategory(CATEGORIES[lang][formType][0]);
+    }
   }, [lang, formType]);
 
   // Load Financial Data
   useEffect(() => {
-    const localTrans = localStorage.getItem('ww_transactions');
-    const localBudgets = localStorage.getItem('ww_budgets');
-    
-    if (localTrans) setTransactions(JSON.parse(localTrans));
-    if (localBudgets) {
-      setBudgets(JSON.parse(localBudgets));
-    } else {
-      const defaultBudgets = CATEGORIES[lang].expense.map(c => ({ category: c, amount_limit: 3000 }));
-      setBudgets(defaultBudgets);
-      localStorage.setItem('ww_budgets', JSON.stringify(defaultBudgets));
+    try {
+      const localTrans = localStorage.getItem('ww_transactions');
+      const localBudgets = localStorage.getItem('ww_budgets');
+      
+      if (localTrans) setTransactions(JSON.parse(localTrans));
+      
+      if (localBudgets) {
+        setBudgets(JSON.parse(localBudgets));
+      } else {
+        const defaultBudgets = CATEGORIES[lang].expense.map(c => ({ category: c, amount_limit: 3000 }));
+        setBudgets(defaultBudgets);
+        localStorage.setItem('ww_budgets', JSON.stringify(defaultBudgets));
+      }
+    } catch (e) {
+      console.error("Failed to load local storage data:", e);
+    } finally {
+      setIsDataLoading(false);
     }
-    setIsDataLoading(false);
   }, []);
 
   // Persist Data
@@ -99,7 +114,9 @@ const App: React.FC = () => {
     setActiveTab('ai');
     try {
       const data = await getFinancialInsights(transactions, budgets);
-      setAiInsights(data.insights);
+      if (data && data.insights) {
+        setAiInsights(data.insights);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -151,7 +168,6 @@ const App: React.FC = () => {
     return (
       <div className={`min-h-screen flex flex-col items-center justify-center ${bgColor}`}>
         <GraduationCap className="text-indigo-500 animate-bounce mb-4" size={64} />
-        <p className="text-indigo-400 font-bold animate-pulse">WealthWisely...</p>
       </div>
     );
   }
@@ -354,7 +370,7 @@ const App: React.FC = () => {
                    autoFocus
                    value={formAmount} 
                    onChange={(e) => setFormAmount(e.target.value)} 
-                   className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-4 rounded-[2rem] py-6 px-8 text-4xl font-black outline-none transition-all placeholder:text-slate-700`} 
+                   className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-4 rounded-[2rem] py-6 px-8 text-4xl font-black outline-none transition-all placeholder:text-slate-700 text-indigo-500`} 
                  />
                </div>
 
@@ -364,7 +380,7 @@ const App: React.FC = () => {
                    <select 
                     value={formCategory} 
                     onChange={(e) => setFormCategory(e.target.value)} 
-                    className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-4 font-black text-xs outline-none appearance-none`}
+                    className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-4 font-black text-xs outline-none appearance-none ${isDark ? 'text-white' : 'text-slate-900'}`}
                    >
                      {CATEGORIES[lang][formType].map(c => <option key={c} value={c}>{c}</option>)}
                    </select>
@@ -375,7 +391,7 @@ const App: React.FC = () => {
                     type="date" 
                     value={formDate} 
                     onChange={(e) => setFormDate(e.target.value)} 
-                    className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-4 font-black text-xs outline-none`} 
+                    className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-4 font-black text-xs outline-none ${isDark ? 'text-white' : 'text-slate-900'}`} 
                    />
                  </div>
                </div>
@@ -387,7 +403,7 @@ const App: React.FC = () => {
                   placeholder="..." 
                   value={formDesc} 
                   onChange={(e) => setFormDesc(e.target.value)} 
-                  className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-6 font-bold text-sm outline-none`} 
+                  className={`w-full ${isDark ? 'bg-slate-800 border-slate-800 focus:border-indigo-500/30' : 'bg-slate-50 border-slate-50 focus:border-indigo-500/10'} border-2 rounded-2xl py-4 px-6 font-bold text-sm outline-none ${isDark ? 'text-white' : 'text-slate-900'}`} 
                  />
                </div>
 
@@ -445,7 +461,7 @@ const MobileNavItem = ({ icon, active, onClick, isDark }: any) => (
     onClick={onClick} 
     className={`p-4 rounded-2xl transition-all ${active ? 'text-indigo-400 bg-indigo-500/10' : (isDark ? 'text-slate-600' : 'text-slate-300')}`}
   >
-    {React.cloneElement(icon as React.ReactElement<any>, { size: 24 })}
+    {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { size: 24 }) : null}
   </button>
 );
 
@@ -465,7 +481,7 @@ const SummaryCard = ({ title, amount, icon, isPercent, color, isDark }: any) => 
         </div>
       </div>
       <p className={`text-3xl font-black ${isDark ? 'text-white' : 'text-slate-900'}`}>
-        {isPercent ? `${amount.toFixed(1)}%` : `฿${amount.toLocaleString()}`}
+        {isPercent ? `${Number(amount).toFixed(1)}%` : `฿${Number(amount).toLocaleString()}`}
       </p>
     </div>
   );
