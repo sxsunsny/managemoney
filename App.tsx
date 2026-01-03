@@ -177,7 +177,7 @@ const App: React.FC = () => {
         {activeTab === 'dashboard' && (
           <div className="space-y-8">
             <header>
-              <h2 className="text-3xl font-black text-slate-800">สวัสดีจ้า 👋</h2>
+              <h2 className="text-3xl font-black text-slate-800">สวัสดีจ้า</h2>
               <p className="text-slate-500 font-medium">วันนี้วางแผนการเงินหรือยัง?</p>
             </header>
 
