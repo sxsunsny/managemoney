@@ -1,5 +1,5 @@
 {
-  "name": "WealthWisely - จัดการเงินรายเดือน",
-  "description": "แอปจัดการเงินรายเดือนพร้อมระบบวิเคราะห์ด้วย AI สำหรับนักเรียนนักศึกษา",
+  "name": "WealthWisely - Monthly Money Manager",
+  "description": "A sophisticated personal finance tracker that helps you manage your monthly budget, track expenses, and receive AI-powered financial insights to grow your wealth.",
   "requestFramePermissions": []
 }
