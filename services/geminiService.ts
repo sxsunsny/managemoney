@@ -2,19 +2,23 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { Transaction, Budget } from "../types";
 
+/**
+ * วิเคราะห์ข้อมูลทางการเงินด้วย Gemini AI โดยใช้ Local Storage Data
+ */
 export const getFinancialInsights = async (transactions: Transaction[], budgets: Budget[]): Promise<any> => {
+  // ดึง API Key อย่างปลอดภัยเพื่อไม่ให้แอปพังบน Browser ที่ไม่มี process object
   let apiKey = '';
   try {
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-      apiKey = process.env.API_KEY;
-    }
-  } catch (e) {}
+    apiKey = process.env.API_KEY || '';
+  } catch (e) {
+    console.warn("API_KEY access warning");
+  }
 
   if (!apiKey) {
     return { 
       insights: [{ 
         title: 'AI ยังไม่พร้อมใช้งาน', 
-        recommendation: 'กรุณาตั้งค่า API_KEY ใน Environment Variables เพื่อใช้งานฟีเจอร์นี้', 
+        recommendation: 'ระบบ AI ต้องการ API Key ในการวิเคราะห์ข้อมูล คุณยังสามารถจดบันทึกได้ตามปกติ', 
         priority: 'low' 
       }] 
     };
@@ -28,7 +32,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
     รายการธุรกรรม: ${JSON.stringify(transactions)}
     งบประมาณที่ตั้งไว้: ${JSON.stringify(budgets)}
     
-    โปรดให้ข้อมูลเชิงลึก 3 ข้อที่เป็นประโยชน์ต่อวัยเรียน โดยตอบเป็น JSON เท่านั้น
+    โปรดให้ข้อมูลเชิงลึก 3 ข้อที่เป็นประโยชน์ต่อวัยเรียน (ภาษาไทย) โดยตอบเป็น JSON เท่านั้น
   `;
 
   try {
@@ -47,7 +51,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
                 properties: {
                   title: { type: Type.STRING },
                   recommendation: { type: Type.STRING },
-                  priority: { type: Type.STRING, enum: ['low', 'medium', 'high'] }
+                  priority: { type: Type.STRING }
                 },
                 required: ['title', 'recommendation', 'priority']
               }
@@ -58,7 +62,8 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
       }
     });
 
-    return JSON.parse(response.text || '{"insights": []}');
+    const jsonStr = response.text || '{"insights": []}';
+    return JSON.parse(jsonStr.trim());
   } catch (error) {
     console.error("Gemini Insight Error:", error);
     return { insights: [] };
