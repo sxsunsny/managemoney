@@ -1,1 +1,1 @@
-// Moved to App.tsx
+// Not used in Vanilla version
