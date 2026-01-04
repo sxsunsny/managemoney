@@ -1,12 +1,15 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { Transaction, Budget } from "../types";
+import { Transaction, Budget, AppLanguage } from "../types";
 
 /**
  * วิเคราะห์ข้อมูลทางการเงินด้วย Gemini AI โดยใช้ Local Storage Data
  */
-export const getFinancialInsights = async (transactions: Transaction[], budgets: Budget[]): Promise<any> => {
-  // ดึง API Key อย่างปลอดภัยเพื่อไม่ให้แอปพังบน Browser ที่ไม่มี process object
+export const getFinancialInsights = async (
+  transactions: Transaction[], 
+  budgets: Budget[], 
+  lang: AppLanguage = 'th'
+): Promise<any> => {
   let apiKey = '';
   try {
     apiKey = process.env.API_KEY || '';
@@ -15,10 +18,15 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
   }
 
   if (!apiKey) {
+    const errorMsg = lang === 'th' 
+      ? 'ระบบ AI ต้องการ API Key ในการวิเคราะห์ข้อมูล คุณยังสามารถจดบันทึกได้ตามปกติ' 
+      : 'AI needs an API Key to analyze data. You can still record transactions normally.';
+    const title = lang === 'th' ? 'AI ยังไม่พร้อมใช้งาน' : 'AI Not Ready';
+    
     return { 
       insights: [{ 
-        title: 'AI ยังไม่พร้อมใช้งาน', 
-        recommendation: 'ระบบ AI ต้องการ API Key ในการวิเคราะห์ข้อมูล คุณยังสามารถจดบันทึกได้ตามปกติ', 
+        title: title, 
+        recommendation: errorMsg, 
         priority: 'low' 
       }] 
     };
@@ -27,12 +35,14 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
   const ai = new GoogleGenAI({ apiKey });
   
   const prompt = `
-    คุณเป็นที่ปรึกษาทางการเงินสำหรับนักเรียนนักศึกษา
-    วิเคราะห์ข้อมูลการใช้จ่ายและงบประมาณรายเดือนของนักศึกษาคนนี้:
-    รายการธุรกรรม: ${JSON.stringify(transactions)}
-    งบประมาณที่ตั้งไว้: ${JSON.stringify(budgets)}
+    You are a professional student financial advisor.
+    Analyze this student's monthly spending and budget data:
+    Transactions: ${JSON.stringify(transactions)}
+    Budgets: ${JSON.stringify(budgets)}
     
-    โปรดให้ข้อมูลเชิงลึก 3 ข้อที่เป็นประโยชน์ต่อวัยเรียน (ภาษาไทย) โดยตอบเป็น JSON เท่านั้น
+    Please provide 3 useful financial insights/tips for a student.
+    Response must be in ${lang === 'th' ? 'Thai' : 'English'}.
+    Response must be ONLY a JSON object.
   `;
 
   try {
@@ -51,7 +61,7 @@ export const getFinancialInsights = async (transactions: Transaction[], budgets:
                 properties: {
                   title: { type: Type.STRING },
                   recommendation: { type: Type.STRING },
-                  priority: { type: Type.STRING }
+                  priority: { type: Type.STRING, enum: ['low', 'medium', 'high'] }
                 },
                 required: ['title', 'recommendation', 'priority']
               }

@@ -7,11 +7,77 @@ import {
 import { 
   Plus, TrendingUp, TrendingDown, Wallet, 
   PieChart as PieIcon, List, BrainCircuit,
-  X, Trash2, Calendar, GraduationCap, RefreshCw
+  X, Trash2, Calendar, GraduationCap, RefreshCw,
+  Languages, Moon, Sun, Settings
 } from 'lucide-react';
-import { Transaction, Budget, TransactionType, AIInsight } from './types';
+import { Transaction, Budget, TransactionType, AIInsight, AppLanguage, AppTheme } from './types';
 import { CATEGORIES, CATEGORY_COLORS } from './constants';
 import { getFinancialInsights } from './services/geminiService';
+
+const TRANSLATIONS = {
+  th: {
+    dashboard: "สรุปภาพรวม",
+    transactions: "รายการย้อนหลัง",
+    budgets: "งบประมาณ",
+    ai: "AI แนะนำ",
+    balance: "เงินคงเหลือ",
+    income: "รายรับ",
+    expense: "รายจ่าย",
+    savings: "เงินออม",
+    recent: "รายการล่าสุด",
+    add: "จดรายการ",
+    save: "บันทึก",
+    amount: "จำนวนเงิน (บาท)",
+    category: "หมวดหมู่",
+    date: "วันที่",
+    note: "บันทึกเพิ่มเติม",
+    aiTitle: "AI ที่ปรึกษา",
+    aiSubtitle: "วิเคราะห์พฤติกรรมการเงิน",
+    aiAnalyzing: "กำลังวิเคราะห์ข้อมูล...",
+    aiCta: "วิเคราะห์พฤติกรรม",
+    aiDefault: "คลิกปุ่มด้านล่างเพื่อรับคำแนะนำ",
+    empty: "ความว่างเปล่า... เริ่มจดกันเลย!",
+    greet: "ยอดเยี่ยมมาก! 👋",
+    greetSub: "นี่คือภาพรวมทางการเงินของคุณ",
+    budgetTitle: "ตั้งงบรายเดือน",
+    overBudget: "⚠️ ใช้เกินงบแล้ว!",
+    priorityHigh: "แนะนำด่วน",
+    priorityLow: "เกร็ดความรู้",
+    lang: "TH",
+    theme: "ขาวดำ"
+  },
+  en: {
+    dashboard: "Dashboard",
+    transactions: "History",
+    budgets: "Budgets",
+    ai: "AI Insights",
+    balance: "Balance",
+    income: "Income",
+    expense: "Expense",
+    savings: "Savings",
+    recent: "Recent Transactions",
+    add: "Add Entry",
+    save: "Save Record",
+    amount: "Amount (THB)",
+    category: "Category",
+    date: "Date",
+    note: "Additional Note",
+    aiTitle: "AI Advisor",
+    aiSubtitle: "Analyze your financial behavior",
+    aiAnalyzing: "Analyzing your data...",
+    aiCta: "Analyze Behavior",
+    aiDefault: "Click button below for AI advice",
+    empty: "Nothing here... start recording!",
+    greet: "Welcome back! 👋",
+    greetSub: "Here is your financial overview",
+    budgetTitle: "Monthly Budgets",
+    overBudget: "⚠️ Over Budget!",
+    priorityHigh: "Priority",
+    priorityLow: "Daily Tip",
+    lang: "EN",
+    theme: "B&W"
+  }
+};
 
 const App: React.FC = () => {
   // Data State
@@ -19,6 +85,10 @@ const App: React.FC = () => {
   const [budgets, setBudgets] = useState<Budget[]>([]);
   const [isDataLoading, setIsDataLoading] = useState(true);
   
+  // Settings State
+  const [lang, setLang] = useState<AppLanguage>(() => (localStorage.getItem('ww_lang') as AppLanguage) || 'th');
+  const [theme, setTheme] = useState<AppTheme>(() => (localStorage.getItem('ww_theme') as AppTheme) || 'color');
+
   // UI State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'transactions' | 'budgets' | 'ai'>('dashboard');
@@ -28,11 +98,30 @@ const App: React.FC = () => {
   // Form State
   const [formType, setFormType] = useState<TransactionType>('expense');
   const [formAmount, setFormAmount] = useState('');
-  const [formCategory, setFormCategory] = useState(CATEGORIES.expense[0]);
+  const [formCategory, setFormCategory] = useState(CATEGORIES[lang].expense[0]);
   const [formDesc, setFormDesc] = useState('');
   const [formDate, setFormDate] = useState(new Date().toISOString().split('T')[0]);
 
-  // 1. Load data from LocalStorage
+  const t = TRANSLATIONS[lang];
+
+  // Apply theme to body
+  useEffect(() => {
+    if (theme === 'bw') {
+      document.body.classList.add('theme-bw');
+    } else {
+      document.body.classList.remove('theme-bw');
+    }
+    localStorage.setItem('ww_theme', theme);
+  }, [theme]);
+
+  // Handle language change
+  useEffect(() => {
+    localStorage.setItem('ww_lang', lang);
+    // Reset form category to current language's first category
+    setFormCategory(CATEGORIES[lang][formType][0]);
+  }, [lang, formType]);
+
+  // Load data
   useEffect(() => {
     const localTrans = localStorage.getItem('ww_transactions');
     const localBudgets = localStorage.getItem('ww_budgets');
@@ -44,7 +133,7 @@ const App: React.FC = () => {
     if (localBudgets) {
       setBudgets(JSON.parse(localBudgets));
     } else {
-      const defaultBudgets = CATEGORIES.expense.map(c => ({ category: c, amount_limit: 3000 }));
+      const defaultBudgets = CATEGORIES.th.expense.map(c => ({ category: c, amount_limit: 3000 }));
       setBudgets(defaultBudgets);
       localStorage.setItem('ww_budgets', JSON.stringify(defaultBudgets));
     }
@@ -52,7 +141,7 @@ const App: React.FC = () => {
     setIsDataLoading(false);
   }, []);
 
-  // 2. Persist data
+  // Persist data
   useEffect(() => {
     if (!isDataLoading) {
       localStorage.setItem('ww_transactions', JSON.stringify(transactions));
@@ -97,7 +186,7 @@ const App: React.FC = () => {
     setIsAiLoading(true);
     setActiveTab('ai');
     try {
-      const data = await getFinancialInsights(transactions, budgets);
+      const data = await getFinancialInsights(transactions, budgets, lang);
       setAiInsights(data.insights);
     } catch (err) {
       console.error(err);
@@ -142,53 +231,74 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-slate-950">
         <GraduationCap className="text-indigo-500 animate-bounce mb-4" size={64} />
-        <p className="text-indigo-200/50 font-bold animate-pulse">เตรียมกระเป๋าเงินดิจิทัล...</p>
+        <p className="text-indigo-200/50 font-bold animate-pulse">
+          {lang === 'th' ? 'เตรียมกระเป๋าเงินดิจิทัล...' : 'Preparing wallet...'}
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen pb-24 lg:pb-0 lg:pl-64 bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white">
+    <div className="min-h-screen pb-24 lg:pb-0 lg:pl-64 bg-slate-950 text-slate-100 transition-colors">
       {/* Sidebar */}
       <aside className="hidden lg:flex flex-col fixed left-0 top-0 bottom-0 w-64 bg-slate-900 border-r border-slate-800 p-8 z-20">
-        <div className="flex items-center gap-3 mb-12">
+        <div className="flex items-center gap-3 mb-10">
           <div className="bg-indigo-600 p-2 rounded-xl shadow-lg shadow-indigo-500/20 text-white">
             <GraduationCap size={28} />
           </div>
           <h1 className="text-xl font-black tracking-tight text-white">WealthWisely</h1>
         </div>
         
-        <nav className="space-y-2 flex-1">
-          <NavItem icon={<PieIcon size={20}/>} label="สรุปภาพรวม" active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
-          <NavItem icon={<List size={20}/>} label="รายการย้อนหลัง" active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
-          <NavItem icon={<Calendar size={20}/>} label="งบประมาณ" active={activeTab === 'budgets'} onClick={() => setActiveTab('budgets')} />
-          <NavItem icon={<BrainCircuit size={20}/>} label="AI แนะนำ" active={activeTab === 'ai'} onClick={handleFetchAI} />
+        <nav className="space-y-1 flex-1">
+          <NavItem icon={<PieIcon size={20}/>} label={t.dashboard} active={activeTab === 'dashboard'} onClick={() => setActiveTab('dashboard')} />
+          <NavItem icon={<List size={20}/>} label={t.transactions} active={activeTab === 'transactions'} onClick={() => setActiveTab('transactions')} />
+          <NavItem icon={<Calendar size={20}/>} label={t.budgets} active={activeTab === 'budgets'} onClick={() => setActiveTab('budgets')} />
+          <NavItem icon={<BrainCircuit size={20}/>} label={t.ai} active={activeTab === 'ai'} onClick={handleFetchAI} />
         </nav>
         
-        <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 rounded-[2rem] text-white shadow-2xl shadow-indigo-500/10">
-          <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-1">เงินคงเหลือ</p>
-          <p className="text-2xl font-black">฿{summary.balance.toLocaleString()}</p>
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <button 
+              onClick={() => setLang(lang === 'th' ? 'en' : 'th')} 
+              className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 border border-slate-700"
+            >
+              <Languages size={14} /> {lang.toUpperCase()}
+            </button>
+            <button 
+              onClick={() => setTheme(theme === 'color' ? 'bw' : 'color')}
+              className="flex-1 bg-slate-800 hover:bg-slate-700 py-2 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 border border-slate-700"
+            >
+              {theme === 'color' ? <Moon size={14} /> : <Sun size={14} />} {t.theme}
+            </button>
+          </div>
+
+          <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 rounded-[2rem] text-white shadow-2xl shadow-indigo-500/10">
+            <p className="text-[10px] font-black opacity-60 uppercase tracking-widest mb-1">{t.balance}</p>
+            <p className="text-2xl font-black">฿{summary.balance.toLocaleString()}</p>
+          </div>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className="max-w-4xl mx-auto p-4 md:p-12">
         {activeTab === 'dashboard' && (
-          <div className="space-y-8">
-            <header>
-              <h2 className="text-3xl font-black text-white">ยอดเยี่ยมมาก! 👋</h2>
-              <p className="text-slate-400 font-medium">นี่คือภาพรวมทางการเงินของคุณ</p>
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <header className="flex justify-between items-end">
+              <div>
+                <h2 className="text-3xl font-black text-white">{t.greet}</h2>
+                <p className="text-slate-400 font-medium">{t.greetSub}</p>
+              </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <SummaryCard title="รายรับ" amount={summary.income} icon={<TrendingUp className="text-emerald-400" />} color="emerald" />
-              <SummaryCard title="รายจ่าย" amount={summary.expenses} icon={<TrendingDown className="text-rose-400" />} color="rose" />
-              <SummaryCard title="เงินออม" amount={summary.savingsRate} isPercent={true} icon={<Wallet className="text-indigo-400" />} color="indigo" />
+              <SummaryCard title={t.income} amount={summary.income} icon={<TrendingUp className="text-emerald-400" />} color="emerald" />
+              <SummaryCard title={t.expense} amount={summary.expenses} icon={<TrendingDown className="text-rose-400" />} color="rose" />
+              <SummaryCard title={t.savings} amount={summary.savingsRate} isPercent={true} icon={<Wallet className="text-indigo-400" />} color="indigo" />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-800">
-                <h3 className="text-lg font-black mb-8 text-white">สัดส่วนรายจ่าย</h3>
+                <h3 className="text-lg font-black mb-8 text-white">{lang === 'th' ? 'สัดส่วนรายจ่าย' : 'Spending Distribution'}</h3>
                 <div className="h-64">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -204,10 +314,10 @@ const App: React.FC = () => {
                 </div>
               </div>
               <div className="bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-800 overflow-hidden">
-                <h3 className="text-lg font-black mb-6 text-white">รายการล่าสุด</h3>
+                <h3 className="text-lg font-black mb-6 text-white">{t.recent}</h3>
                 <div className="space-y-1">
-                  {transactions.slice(0, 5).map(t => <TransactionItem key={t.id} transaction={t} onDelete={deleteTransaction} />)}
-                  {transactions.length === 0 && <p className="text-center py-12 text-slate-600 font-bold italic">ยังไม่มีบันทึกวันนี้</p>}
+                  {transactions.slice(0, 5).map(t => <TransactionItem key={t.id} transaction={t} onDelete={deleteTransaction} lang={lang} />)}
+                  {transactions.length === 0 && <p className="text-center py-12 text-slate-600 font-bold italic">{lang === 'th' ? 'ยังไม่มีบันทึกวันนี้' : 'No entries today'}</p>}
                 </div>
               </div>
             </div>
@@ -215,26 +325,26 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'transactions' && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in duration-300">
             <div className="flex justify-between items-center">
-              <h2 className="text-2xl font-black text-white">ประวัติการเงิน</h2>
+              <h2 className="text-2xl font-black text-white">{t.transactions}</h2>
               <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-500/20 active:scale-95">
-                + จดรายการ
+                + {t.add}
               </button>
             </div>
             <div className="bg-slate-900 rounded-[2.5rem] border border-slate-800 divide-y divide-slate-800 overflow-hidden shadow-sm">
               {transactions.length > 0 ? (
-                transactions.map(t => <TransactionItem key={t.id} transaction={t} onDelete={deleteTransaction} />)
+                transactions.map(t => <TransactionItem key={t.id} transaction={t} onDelete={deleteTransaction} lang={lang} />)
               ) : (
-                <div className="p-24 text-center text-slate-600 font-black italic">ความว่างเปล่า... เริ่มจดกันเลย!</div>
+                <div className="p-24 text-center text-slate-600 font-black italic">{t.empty}</div>
               )}
             </div>
           </div>
         )}
 
         {activeTab === 'budgets' && (
-          <div className="space-y-6">
-            <h2 className="text-2xl font-black text-white">ตั้งงบรายเดือน</h2>
+          <div className="space-y-6 animate-in fade-in duration-300">
+            <h2 className="text-2xl font-black text-white">{t.budgetTitle}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {budgetProgressData.map(b => (
                 <div key={b.category} className="bg-slate-900 p-8 rounded-[2.5rem] shadow-sm border border-slate-800 transition-all hover:border-slate-700">
@@ -242,7 +352,7 @@ const App: React.FC = () => {
                     <div className="flex-1">
                       <h4 className="font-black text-slate-200 text-lg leading-tight">{b.category}</h4>
                       <p className="text-xs text-slate-500 font-bold mt-1">
-                        ใช้ไป ฿{b.spent.toLocaleString()} / ฿{b.amount_limit.toLocaleString()}
+                        {lang === 'th' ? 'ใช้ไป' : 'Spent'} ฿{b.spent.toLocaleString()} / ฿{b.amount_limit.toLocaleString()}
                       </p>
                     </div>
                     <div className="relative">
@@ -260,7 +370,7 @@ const App: React.FC = () => {
                       style={{ width: `${b.percentage}%` }} 
                     />
                   </div>
-                  {b.percentage >= 100 && <p className="text-rose-400 text-[10px] font-black mt-2 uppercase tracking-tighter">⚠️ ใช้เกินงบแล้ว!</p>}
+                  {b.percentage >= 100 && <p className="text-rose-400 text-[10px] font-black mt-2 uppercase tracking-tighter">{t.overBudget}</p>}
                 </div>
               ))}
             </div>
@@ -268,14 +378,14 @@ const App: React.FC = () => {
         )}
 
         {activeTab === 'ai' && (
-          <div className="space-y-6">
+          <div className="space-y-6 animate-in fade-in duration-500">
              <div className="flex items-center gap-4 mb-4">
                 <div className="bg-indigo-600 p-4 rounded-3xl text-white shadow-xl shadow-indigo-500/20">
                   <BrainCircuit size={32} />
                 </div>
                 <div>
-                  <h2 className="text-2xl font-black text-white">AI ที่ปรึกษา</h2>
-                  <p className="text-slate-400 font-bold">วิเคราะห์พฤติกรรมการเงิน</p>
+                  <h2 className="text-2xl font-black text-white">{t.aiTitle}</h2>
+                  <p className="text-slate-400 font-bold">{t.aiSubtitle}</p>
                 </div>
              </div>
 
@@ -284,7 +394,7 @@ const App: React.FC = () => {
                  aiInsights.map((insight, i) => (
                    <div key={i} className="bg-slate-900 p-8 rounded-[2.5rem] border border-slate-800 shadow-sm animate-in slide-in-from-bottom-4 duration-500" style={{ animationDelay: `${i * 150}ms` }}>
                      <div className={`inline-block px-3 py-1 rounded-full text-[10px] font-black mb-3 border ${insight.priority === 'high' ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
-                       {insight.priority === 'high' ? 'แนะนำด่วน' : 'เกร็ดความรู้'}
+                       {insight.priority === 'high' ? t.priorityHigh : t.priorityLow}
                      </div>
                      <h3 className="text-xl font-black mb-3 text-white">{insight.title}</h3>
                      <p className="text-slate-400 text-sm leading-relaxed font-medium">{insight.recommendation}</p>
@@ -292,7 +402,7 @@ const App: React.FC = () => {
                  ))
                ) : (
                  <div className="p-24 text-center bg-slate-900 rounded-[2.5rem] border-2 border-dashed border-slate-800 text-slate-600 font-black italic">
-                   {isAiLoading ? "กำลังวิเคราะห์ข้อมูล..." : "คลิกปุ่มด้านล่างเพื่อรับคำแนะนำ"}
+                   {isAiLoading ? t.aiAnalyzing : t.aiDefault}
                  </div>
                )}
              </div>
@@ -303,7 +413,7 @@ const App: React.FC = () => {
                 className="w-full py-6 bg-indigo-600 text-white rounded-3xl font-black flex items-center justify-center gap-3 shadow-2xl hover:bg-indigo-500 active:scale-[0.98] transition-all disabled:opacity-50"
               >
                 {isAiLoading ? <RefreshCw className="animate-spin" /> : <BrainCircuit />} 
-                {isAiLoading ? 'กำลังคำนวณ...' : 'วิเคราะห์พฤติกรรม'}
+                {isAiLoading ? (lang === 'th' ? 'กำลังคำนวณ...' : 'Calculating...') : t.aiCta}
               </button>
           </div>
         )}
@@ -314,19 +424,19 @@ const App: React.FC = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
           <div className="bg-slate-900 w-full max-w-md rounded-[3rem] shadow-2xl border border-slate-800 overflow-hidden animate-in zoom-in duration-300">
             <div className="p-8 border-b border-slate-800 flex justify-between items-center">
-              <h3 className="text-2xl font-black text-white">จดบันทึก</h3>
+              <h3 className="text-2xl font-black text-white">{t.add}</h3>
               <button onClick={() => setIsModalOpen(false)} className="p-3 hover:bg-slate-800 rounded-2xl transition-colors text-slate-500">
                 <X size={24} />
               </button>
             </div>
             <form onSubmit={handleAddTransaction} className="p-8 space-y-6">
                <div className="flex bg-slate-800 p-1.5 rounded-2xl">
-                  <button type="button" onClick={() => {setFormType('expense'); setFormCategory(CATEGORIES.expense[0]);}} className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${formType === 'expense' ? 'bg-slate-700 text-rose-400 shadow-sm' : 'text-slate-500'}`}>จ่ายเงิน</button>
-                  <button type="button" onClick={() => {setFormType('income'); setFormCategory(CATEGORIES.income[0]);}} className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${formType === 'income' ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-500'}`}>ได้รับเงิน</button>
+                  <button type="button" onClick={() => {setFormType('expense'); setFormCategory(CATEGORIES[lang].expense[0]);}} className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${formType === 'expense' ? 'bg-slate-700 text-rose-400 shadow-sm' : 'text-slate-500'}`}>{t.expense}</button>
+                  <button type="button" onClick={() => {setFormType('income'); setFormCategory(CATEGORIES[lang].income[0]);}} className={`flex-1 py-3 rounded-xl text-xs font-black transition-all ${formType === 'income' ? 'bg-slate-700 text-emerald-400 shadow-sm' : 'text-slate-500'}`}>{t.income}</button>
                </div>
                
                <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">จำนวนเงิน (บาท)</label>
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{t.amount}</label>
                  <input 
                    type="number" 
                    required 
@@ -340,17 +450,17 @@ const App: React.FC = () => {
 
                <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-2">
-                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">หมวดหมู่</label>
+                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{t.category}</label>
                    <select 
                     value={formCategory} 
                     onChange={(e) => setFormCategory(e.target.value)} 
                     className="w-full bg-slate-800 border-2 border-slate-800 rounded-2xl py-4 px-4 font-black text-xs text-white outline-none focus:border-indigo-500/30 appearance-none"
                    >
-                     {CATEGORIES[formType].map(c => <option key={c} value={c}>{c}</option>)}
+                     {CATEGORIES[lang][formType].map(c => <option key={c} value={c}>{c}</option>)}
                    </select>
                  </div>
                  <div className="space-y-2">
-                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">วันที่</label>
+                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{t.date}</label>
                    <input 
                     type="date" 
                     value={formDate} 
@@ -361,10 +471,10 @@ const App: React.FC = () => {
                </div>
 
                <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">บันทึกเพิ่มเติม</label>
+                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest px-2">{t.note}</label>
                  <input 
                   type="text" 
-                  placeholder="เช่น มื้อเที่ยงคณะ..." 
+                  placeholder="..." 
                   value={formDesc} 
                   onChange={(e) => setFormDesc(e.target.value)} 
                   className="w-full bg-slate-800 border-2 border-slate-800 rounded-2xl py-4 px-6 font-bold text-sm text-white outline-none focus:border-indigo-500/30" 
@@ -375,7 +485,7 @@ const App: React.FC = () => {
                 type="submit" 
                 className={`w-full py-5 rounded-[2rem] font-black text-white shadow-2xl transition-all active:scale-95 mt-4 text-lg ${formType === 'income' ? 'bg-emerald-600 shadow-emerald-500/10' : 'bg-rose-600 shadow-rose-500/10'}`}
                >
-                บันทึก {formType === 'income' ? 'รายรับ' : 'รายจ่าย'}
+                {t.save}
                </button>
             </form>
           </div>
@@ -393,7 +503,13 @@ const App: React.FC = () => {
           <Plus size={28} />
         </button>
         <MobileNavItem icon={<Calendar />} active={activeTab === 'budgets'} onClick={() => setActiveTab('budgets')} />
-        <MobileNavItem icon={<BrainCircuit />} active={activeTab === 'ai'} onClick={handleFetchAI} />
+        <div className="relative group">
+          <MobileNavItem icon={<Settings />} active={false} onClick={() => {}} />
+          <div className="absolute bottom-full mb-2 right-0 bg-slate-800 p-2 rounded-2xl flex flex-col gap-2 shadow-2xl border border-slate-700 opacity-0 group-focus-within:opacity-100 transition-opacity">
+            <button onClick={() => setLang(lang === 'th' ? 'en' : 'th')} className="p-2 text-[10px] font-black">{lang.toUpperCase()}</button>
+            <button onClick={() => setTheme(theme === 'color' ? 'bw' : 'color')} className="p-2 text-[10px] font-black">{t.theme}</button>
+          </div>
+        </div>
       </nav>
     </div>
   );
@@ -441,7 +557,7 @@ const SummaryCard = ({ title, amount, icon, isPercent, color }: any) => {
   );
 };
 
-const TransactionItem = ({ transaction, onDelete }: any) => (
+const TransactionItem = ({ transaction, onDelete, lang }: any) => (
   <div className="group flex items-center justify-between p-5 hover:bg-slate-800 transition-all rounded-3xl">
     <div className="flex items-center gap-4">
       <div className={`p-3 rounded-2xl ${transaction.type === 'income' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
@@ -452,7 +568,7 @@ const TransactionItem = ({ transaction, onDelete }: any) => (
         <div className="flex items-center gap-2 text-[10px] text-slate-500 font-black uppercase tracking-wider">
           <span className="bg-slate-800 px-2 py-0.5 rounded-lg text-slate-400">{transaction.category}</span>
           <span>•</span>
-          <span>{new Date(transaction.date).toLocaleDateString('th-TH')}</span>
+          <span>{new Date(transaction.date).toLocaleDateString(lang === 'th' ? 'th-TH' : 'en-US')}</span>
         </div>
       </div>
     </div>
